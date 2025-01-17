@@ -1,0 +1,127 @@
+﻿@model Weather.ViewModel.CityViewModel
+@{
+    ViewData["Title"] = "台灣縣市天氣";
+}
+<head>
+    <script src="~/lib/chart.js/dist/chart.umd.js"></script>
+</head>
+
+<body>
+    <div class="alert alert-success">
+        <h3>台灣縣市天氣報表-12小時天氣預報</h3>
+    </div>
+    <div>
+        <label for="citySelect">選擇縣市:</label>
+        <select id="citySelect"  onchange="fetchWeatherData()">
+            @foreach (var temp in Model.CityList)
+            {  
+               <option value="@temp.Value">@temp.Text</option>               
+            }
+        </select>     
+    </div>
+
+    <canvas id="weatherChart"></canvas>
+
+    <script>
+        let previousCity = ''; // 儲存上一次選擇的縣市
+        let weatherChart; 
+
+        async function fetchWeatherData() {
+            const selectedCity = document.getElementById('citySelect').value;
+
+            if (selectedCity) {
+                try {
+  
+                    if (selectedCity !== previousCity) {
+                        if (weatherChart) {
+                            weatherChart.destroy(); 
+                            weatherChart = null; // 重置圖表
+                        }
+                    }
+
+                    const response = await fetch(`/Weather/WeatherAjaxJSON?citySelect=${selectedCity}`);
+            
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const weatherData = await response.json(); 
+
+                    // 更新之前的選擇縣市
+                    previousCity = selectedCity;
+
+                    if (weatherData.length > 0) {
+                        const labels = weatherData.flatMap(data => data.day);
+                        const avgTemperatures = weatherData.flatMap(data => data.avgTemperature);
+                        const maxTemperatures = weatherData.flatMap(data => data.maxTemperature);
+                        const minTemperatures = weatherData.flatMap(data => data.minTemperature);
+
+                        const ctx = document.getElementById('weatherChart').getContext('2d');
+
+                        // 創建新的圖表
+                        weatherChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [
+                                    {
+                                        label: '平均溫度',
+                                        data: avgTemperatures,
+                                        borderColor: 'rgba(75, 192, 192, 1)',  
+                                        pointStyle: "circle",
+                                        pointRadius: 5, //點的半徑大小
+                                        pointBackgroundColor: 'rgb(0,255,0)',
+                                        fill: false
+                                    },
+                                    {
+                                        label: '最高溫度',
+                                        data: maxTemperatures,
+                                        borderColor: 'rgba(255, 99, 132, 1)',
+                                        pointStyle: "triangle",
+                                        pointRadius: 5,
+                                        pointBackgroundColor: 'rgb(220,20,60)',                                       
+                                        fill: false
+                                    },
+                                    {
+                                        label: '最低溫度',
+                                        data: minTemperatures,
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        pointStyle: "rect",
+                                        pointRadius: 5,
+                                        pointBackgroundColor: 'rgb(0,0,0)',
+                                        fill: false
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                               
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        position: 'top'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: '溫度(攝氏)'
+                                        }
+
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        alert("沒有找到相關的天氣數據！");
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    alert("發生錯誤，請檢查問題。");
+                }
+            }
+        }
+    </script>
+</body>
