@@ -24,7 +24,7 @@ namespace Weather.Controllers
         {
             if (!string.IsNullOrEmpty(citySelect))
             {
-                var response = await _httpClient.GetStringAsync($"http://localhost:5000/WeatherForecast/{citySelect}");
+                var response = await _httpClient.GetStringAsync($"http://localhost:5000/api/WeatherForecast/{citySelect}");
                 var weatherDataList = JsonSerializer.Deserialize<List<WeatherData>>(response); // 反序列化
 
                 // AJAX 請求，返回 JSON 格式
