@@ -11,4 +11,4 @@
    - 在 Weather 專案中使用 Chart.js 將從 WeatherApi 取得的資料視覺化呈現
 
 以下是呈現天氣預報資料的範例:
-![圖檔說明](./images/weather.png)
+![圖檔說明](./images/weather.PNG)
